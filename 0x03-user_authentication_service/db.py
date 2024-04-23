@@ -11,6 +11,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import NoResultFound, InvalidRequestError
 from user import Base, User
+import logging
+
+
+logging.disable(logging.WARNING)
 
 
 class DB:
@@ -25,7 +29,7 @@ class DB:
         Initializes a new DB instance
         and creates the necessary tables in the database.
         """
-        self._engine = create_engine("sqlite:///a.db", echo=False)
+        self._engine = create_engine("sqlite:///a.db", echo=True)
         Base.metadata.drop_all(self._engine)
         Base.metadata.create_all(self._engine)
         self.__session = None
