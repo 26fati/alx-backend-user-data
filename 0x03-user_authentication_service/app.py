@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 This module contains a Flask application
-that provides user authentication services.
+that provides user AUTHentication services.
 '''
 
 from flask import Flask, jsonify, request, abort, redirect, url_for
@@ -10,10 +10,10 @@ from sqlalchemy.exc import NoResultFound
 
 
 app = Flask(__name__)
-auth = Auth()
+AUTH = Auth()
 
 
-@app.route('/', methods=['GET'], strict_slashes=False)
+@app.route('/', methods=['GET'])
 def home() -> str:
     """
     Home route of the application.
@@ -24,7 +24,7 @@ def home() -> str:
     return jsonify({"message": "Bienvenue"})
 
 
-@app.route('/users', methods=['POST'], strict_slashes=False)
+@app.route('/users', methods=['POST'])
 def register_user():
     """
     Register a new user.
@@ -38,7 +38,7 @@ def register_user():
     except KeyError:
         abort(400)
     try:
-        user = auth.register_user(email, password)
+        user = AUTH.register_user(email, password)
         return jsonify({"email": email, "message": "user created"})
     except ValueError:
         return jsonify({"message": "email already registered"}), 400
@@ -57,16 +57,16 @@ def login():
         password = request.form['password']
     except KeyError:
         abort(401)
-    if not auth.valid_login(email, password):
+    if not AUTH.valid_login(email, password):
         abort(401)
     else:
-        session_id = auth.create_session(email)
+        session_id = AUTH.create_session(email)
         response = jsonify({"email": email, "message": "logged in"})
         response.set_cookie("session_id", session_id)
         return response
 
 
-@app.route('/sessions', methods=['DELETE'], strict_slashes=False)
+@app.route('/sessions', methods=['DELETE'])
 def logout():
     """
     Log out a user.
@@ -75,15 +75,15 @@ def logout():
         redirect: Redirects the user to the home route.
     """
     session_id = request.cookies.get('session_id')
-    user = auth.get_user_from_session_id(session_id)
+    user = AUTH.get_user_from_session_id(session_id)
     if user:
-        auth.destroy_session(user.id)
+        AUTH.destroy_session(user.id)
         return redirect('/')
     else:
         abort(403)
 
 
-@app.route('/profile', methods=['GET'], strict_slashes=False)
+@app.route('/profile', methods=['GET'])
 def profile():
     """
     Get the user's profile.
@@ -92,7 +92,7 @@ def profile():
         JSON: A JSON response with the user's email.
     """
     session_id = request.cookies.get('session_id')
-    user = auth.get_user_from_session_id(session_id)
+    user = AUTH.get_user_from_session_id(session_id)
     if user is not None:
         return jsonify({"email": user.email}), 200
     else:
@@ -112,7 +112,7 @@ def get_reset_password_token():
         email = request.form['email']
     except KeyError:
         abort(403)
-    token = auth.get_reset_password_token(email)
+    token = AUTH.get_reset_password_token(email)
     return jsonify({"email": email, "reset_token": token}), 200
 
 
@@ -128,7 +128,7 @@ def update_password():
     reset_token = request.form.get('reset_token')
     new_password = request.form.get('new_password')
     try:
-        auth.update_password(reset_token, new_password)
+        AUTH.update_password(reset_token, new_password)
         return jsonify({"email": email, "message": "Password updated"})
     except ValueError:
         abort(403)
